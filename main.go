@@ -5,10 +5,11 @@ import (
 	"net"
 
 	"github.com/scgolang/osc"
+	"github.com/scgolang/scids/scid"
 )
 
 func main() {
-	laddr, err := net.ResolveUDPAddr("udp", "0.0.0.0:5610")
+	laddr, err := net.ResolveUDPAddr("udp", net.JoinHostPort("0.0.0.0", scid.Port))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -16,15 +17,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ch := make(chan chan uint64)
+	ch := make(chan chan int32)
 	go loop(ch, 1000)
 	if err := srv.Serve(osc.Dispatcher{
-		"/scids/next": func(m osc.Message) error {
-			req := make(chan uint64)
+		scid.AddrNext: func(m osc.Message) error {
+			req := make(chan int32)
 			ch <- req
 			return srv.SendTo(m.Sender, osc.Message{
-				Address: "/scids/next",
+				Address: scid.AddrReply,
 				Arguments: osc.Arguments{
+					osc.String(scid.AddrNext),
 					osc.Int(<-req),
 				},
 			})
@@ -34,10 +36,9 @@ func main() {
 	}
 }
 
-func loop(ch chan chan uint64, i uint64) {
+func loop(ch chan chan int32, i int32) {
 	for req := range ch {
 		req <- i
 		i++
-		log.Printf("now at %d\n", i)
 	}
 }
