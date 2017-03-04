@@ -1,0 +1,18 @@
+hash: ee7b90868ae02fbc79d0427238e95964875a929f33605122ead4203268b332f3
+updated: 2017-03-04T16:34:25.455900271-06:00
+imports:
+- name: github.com/awalterschulze/gographviz
+  version: 057e6a5e9343c1e85264a73798ca7c7a197c8b69
+  subpackages:
+  - ast
+  - errors
+  - lexer
+  - parser
+  - token
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/scgolang/osc
+  version: 876161d22dbc56517f1df8686a8ffc31daeab01f
+- name: github.com/scgolang/sc
+  version: dcfc5935bc6a13c84286dfac072254a0cd28dc41
+testImports: []

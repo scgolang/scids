@@ -1,0 +1,8 @@
+package: github.com/scgolang/scids
+import:
+- package: github.com/pkg/errors
+  version: ^0.8.0
+- package: github.com/scgolang/osc
+  version: ^0.9.8
+- package: github.com/scgolang/sc
+  version: ^0.1.1
