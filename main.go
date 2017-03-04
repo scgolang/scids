@@ -20,7 +20,7 @@ func main() {
 	ch := make(chan chan int32)
 	go loop(ch, 1000)
 	if err := srv.Serve(osc.Dispatcher{
-		scid.AddrNext: func(m osc.Message) error {
+		scid.AddrNext: osc.Method(func(m osc.Message) error {
 			req := make(chan int32)
 			ch <- req
 			return srv.SendTo(m.Sender, osc.Message{
@@ -30,7 +30,7 @@ func main() {
 					osc.Int(<-req),
 				},
 			})
-		},
+		}),
 	}); err != nil {
 		log.Fatal(err)
 	}

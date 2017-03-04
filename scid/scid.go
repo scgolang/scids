@@ -40,7 +40,7 @@ func init() {
 
 	go func(ch chan int32) {
 		_ = scidsConn.Serve(osc.Dispatcher{
-			AddrReply: func(m osc.Message) error {
+			AddrReply: osc.Method(func(m osc.Message) error {
 				if expected, got := 2, len(m.Arguments); expected != got {
 					return errors.Errorf("expected %d arguments, got %d", expected, got)
 				}
@@ -57,7 +57,7 @@ func init() {
 				}
 				ch <- id
 				return nil
-			},
+			}),
 		})
 	}(ch)
 }
