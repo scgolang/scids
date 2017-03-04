@@ -8,12 +8,14 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/scgolang/osc"
+	"github.com/scgolang/sc"
 )
 
 const (
-	AddrNext  = "/scids/next"
-	AddrReply = "/reply"
-	Port      = "5610"
+	AddrNext     = "/scids/next"
+	AddrSynthdef = "/scids/synthdef"
+	AddrReply    = "/reply"
+	Port         = "5610"
 )
 
 var (
@@ -21,12 +23,27 @@ var (
 	conn osc.Conn
 )
 
+// Next gets the next synth ID.
 func Next() (int32, error) {
 	if err := conn.Send(osc.Message{Address: AddrNext}); err != nil {
 		return 0, err
 	}
 	id := <-ch
 	return id, nil
+}
+
+// Play plays a synthdef.
+func Play(def *sc.Synthdef) error {
+	buf, err := def.Bytes()
+	if err != nil {
+		return errors.Wrap(err, "getting synthdef bytes")
+	}
+	return errors.Wrap(conn.Send(osc.Message{
+		Address: AddrSynthdef,
+		Arguments: osc.Arguments{
+			osc.Blob(buf),
+		},
+	}), "sending synthdef message")
 }
 
 func init() {
