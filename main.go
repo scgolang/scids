@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/scgolang/osc"
 	"github.com/scgolang/sc"
-	"github.com/scgolang/scids/scid"
+	"github.com/scgolang/scid"
 )
 
 func main() {
@@ -34,19 +34,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	newID := func(m osc.Message) error {
+		req := make(chan int32)
+		ch <- req
+		return srv.SendTo(m.Sender, osc.Message{
+			Address: scid.AddrReply,
+			Arguments: osc.Arguments{
+				osc.String(scid.AddrNext),
+				osc.Int(<-req),
+			},
+		})
+	}
 	if err := srv.Serve(osc.Dispatcher{
-		scid.AddrNext: osc.Method(func(m osc.Message) error {
-			req := make(chan int32)
-			ch <- req
-			return srv.SendTo(m.Sender, osc.Message{
-				Address: scid.AddrReply,
-				Arguments: osc.Arguments{
-					osc.String(scid.AddrNext),
-					osc.Int(<-req),
-				},
-			})
-		}),
+		scid.AddrNext:     osc.Method(newID),
 		scid.AddrSynthdef: scClient,
 	}); err != nil {
 		log.Fatal(err)
@@ -73,15 +73,31 @@ func (c *client) Handle(m osc.Message) error {
 	if expected, got := scid.AddrSynthdef, m.Address; expected != got {
 		return errors.Errorf("expected %s, got %s", expected, got)
 	}
-	if expected, got := 1, len(m.Arguments); expected != got {
-		return errors.Errorf("expected %d, got %d", expected, got)
+	if len(m.Arguments) < 1 {
+		return errors.New("expected at least one argument")
+	}
+	if len(m.Arguments)%2 == 0 {
+		return errors.New("expected an odd number of arguments")
 	}
 	buf, err := m.Arguments[0].ReadBlob()
 	if err != nil {
 		return errors.Wrap(err, "reading blob")
 	}
-	req := make(chan int32)
-
+	var (
+		req  = make(chan int32)
+		ctls = map[string]float32{}
+	)
+	for i := 1; i < len(m.Arguments); i += 2 {
+		s, err := m.Arguments[i].ReadString()
+		if err != nil {
+			return errors.Wrap(err, "reading control name")
+		}
+		v, err := m.Arguments[i+1].ReadFloat32()
+		if err != nil {
+			return errors.Wrap(err, "reading control value")
+		}
+		ctls[s] = v
+	}
 	c.ids <- req
 
 	def, err := sc.ReadSynthdef(bytes.NewReader(buf))
@@ -91,7 +107,7 @@ func (c *client) Handle(m osc.Message) error {
 	if err := c.SendDef(def); err != nil {
 		return errors.Wrap(err, "sending synthdef")
 	}
-	_, err = c.group.Synth(def.Name, <-req, sc.AddToTail, nil)
+	_, err = c.group.Synth(def.Name, <-req, sc.AddToTail, ctls)
 	return errors.Wrap(err, "creating synth")
 }
 
