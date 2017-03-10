@@ -1,5 +1,5 @@
 hash: ee7b90868ae02fbc79d0427238e95964875a929f33605122ead4203268b332f3
-updated: 2017-03-05T08:20:45.24241482-06:00
+updated: 2017-03-09T21:39:32.97987193-06:00
 imports:
 - name: github.com/awalterschulze/gographviz
   version: 057e6a5e9343c1e85264a73798ca7c7a197c8b69
@@ -16,5 +16,5 @@ imports:
 - name: github.com/scgolang/sc
   version: 3e60e6d65cb885efbf11faaaea86881dec0d6298
 - name: github.com/scgolang/scid
-  version: 2e0690a5c33d9c14fe53667ece6ebecd5435449d
+  version: a574f8dea7d5af4d1ac92bc15958a69a116b84a8
 testImports: []

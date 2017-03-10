@@ -33,17 +33,22 @@ func Next() (int32, error) {
 }
 
 // Play plays a synthdef.
-func Play(def *sc.Synthdef) error {
+func Play(def *sc.Synthdef, ctls map[string]float32) error {
 	buf, err := def.Bytes()
 	if err != nil {
 		return errors.Wrap(err, "getting synthdef bytes")
 	}
-	return errors.Wrap(conn.Send(osc.Message{
+	msg := osc.Message{
 		Address: AddrSynthdef,
 		Arguments: osc.Arguments{
 			osc.Blob(buf),
 		},
-	}), "sending synthdef message")
+	}
+	for k, v := range ctls {
+		msg.Arguments = append(msg.Arguments, osc.String(k))
+		msg.Arguments = append(msg.Arguments, osc.Float(v))
+	}
+	return errors.Wrap(conn.Send(msg), "sending synthdef message")
 }
 
 func init() {
